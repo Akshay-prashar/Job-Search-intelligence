@@ -8,7 +8,7 @@ from app.core.logging_config import setup_logging
 from app.services.embedding_service import EmbeddingService
 from app.ingestion.scheduler import IngestionScheduler
 
-from app.api.routes import resume, matching, ingestion, summarize
+from app.api.routes import resume, matching, ingestion, summarize, taxonomy
 
 # Setup system logger
 setup_logging()
@@ -33,6 +33,7 @@ app.include_router(resume.router)
 app.include_router(matching.router)
 app.include_router(ingestion.router)
 app.include_router(summarize.router)
+app.include_router(taxonomy.router)
 
 scheduler = IngestionScheduler()
 

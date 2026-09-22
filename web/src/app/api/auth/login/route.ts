@@ -40,11 +40,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Check if user is an admin
+    const adminUser = await prisma.adminUser.findUnique({
+      where: { email: user.email }
+    })
+
     // Sign JWT
-    const token = await signJWT({ userId: user.id, email: user.email })
+    const token = await signJWT({
+      userId: user.id,
+      email: user.email,
+      role: adminUser ? 'admin' : 'user'
+    })
     
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { id: user.id, name: user.name, email: user.email, role: adminUser ? 'admin' : 'user' }
     })
     
     response.cookies.set('token', token, {

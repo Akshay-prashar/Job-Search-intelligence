@@ -87,7 +87,8 @@ CREATE TABLE companies (
     fresher_friendly       BOOLEAN DEFAULT FALSE,
     public_hiring_email    VARCHAR(255),           -- Only if publicly available
     created_at             TIMESTAMPTZ DEFAULT NOW(),
-    updated_at             TIMESTAMPTZ DEFAULT NOW()
+    updated_at             TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT companies_domain_key UNIQUE (domain)
 );
 
 CREATE UNIQUE INDEX idx_companies_domain ON companies(domain) WHERE domain IS NOT NULL;
@@ -181,7 +182,7 @@ CREATE TABLE job_matches (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id                 UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     job_id                  UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-    match_score             DECIMAL(5,2) NOT NULL,   -- 0-100 composite
+    match_score             DECIMAL(5,2) NOT NULL,   -- original 8-factor score
     exact_match_score       DECIMAL(5,2),
     semantic_score          DECIMAL(5,2),
     fresher_fit_score       DECIMAL(5,2),
@@ -190,14 +191,80 @@ CREATE TABLE job_matches (
     recency_score           DECIMAL(5,2),
     completeness_score      DECIMAL(5,2),
     role_relevance_score    DECIMAL(5,2),
-    explanation_json        JSONB DEFAULT '{}',       -- full human-readable explanation
+    taxonomy_score          DECIMAL(5,2),
+    rerank_score            DECIMAL(5,2),
+    final_score             DECIMAL(5,2),
+    taxonomy_evidence_json  JSONB DEFAULT '{}',
+    rerank_explanation_json JSONB DEFAULT '{}',
+    rerank_model            VARCHAR(100),
+    explanation_json        JSONB DEFAULT '{}',
     created_at              TIMESTAMPTZ DEFAULT NOW(),
     updated_at              TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, job_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_matches_user_score 
+    ON job_matches(user_id, final_score DESC NULLS LAST, match_score DESC);
+
 -- ============================================================
--- 10. company_insights
+-- 10. taxonomy_terms
+-- ============================================================
+CREATE TABLE taxonomy_terms (
+    id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    taxonomy_name     VARCHAR(50) NOT NULL,
+    external_id       VARCHAR(255) NOT NULL,
+    term_type         VARCHAR(30) NOT NULL,
+    preferred_label   VARCHAR(255) NOT NULL,
+    description       TEXT,
+    aliases_json      JSONB DEFAULT '[]',
+    embedding_vector  VECTOR(384),
+    version_label     VARCHAR(100),
+    created_at        TIMESTAMPTZ DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(taxonomy_name, external_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_taxonomy_terms_type ON taxonomy_terms(term_type);
+CREATE INDEX IF NOT EXISTS idx_taxonomy_terms_label ON taxonomy_terms(preferred_label);
+
+-- ============================================================
+-- 11. job_taxonomy_links
+-- ============================================================
+CREATE TABLE job_taxonomy_links (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_id           UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    taxonomy_term_id UUID NOT NULL REFERENCES taxonomy_terms(id) ON DELETE CASCADE,
+    link_type        VARCHAR(30) NOT NULL,
+    confidence_score DECIMAL(5,4) DEFAULT 0.50,
+    source_method    VARCHAR(50) NOT NULL,
+    evidence_text    TEXT,
+    created_at       TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(job_id, taxonomy_term_id, link_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_job_taxonomy_job ON job_taxonomy_links(job_id);
+CREATE INDEX IF NOT EXISTS idx_job_taxonomy_term ON job_taxonomy_links(taxonomy_term_id);
+
+-- ============================================================
+-- 12. resume_taxonomy_links
+-- ============================================================
+CREATE TABLE resume_taxonomy_links (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    resume_id        UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    taxonomy_term_id UUID NOT NULL REFERENCES taxonomy_terms(id) ON DELETE CASCADE,
+    link_type        VARCHAR(30) NOT NULL,
+    confidence_score DECIMAL(5,4) DEFAULT 0.50,
+    source_method    VARCHAR(50) NOT NULL,
+    evidence_text    TEXT,
+    created_at       TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(resume_id, taxonomy_term_id, link_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_resume_taxonomy_resume ON resume_taxonomy_links(resume_id);
+CREATE INDEX IF NOT EXISTS idx_resume_taxonomy_term ON resume_taxonomy_links(taxonomy_term_id);
+
+-- ============================================================
+-- 13. company_insights
 -- ============================================================
 CREATE TABLE company_insights (
     id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

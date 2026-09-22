@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
       totalCompanies,
       totalApplications,
       totalResumes,
+      totalTaxonomyTerms,
+      totalJobTaxonomyLinks,
+      totalResumeTaxonomyLinks,
+      totalMatchesComputed,
       recentJobs,
       sourceCounts,
     ] = await Promise.all([
@@ -37,6 +41,10 @@ export async function GET(req: NextRequest) {
       prisma.company.count(),
       prisma.application.count(),
       prisma.resume.count(),
+      prisma.taxonomyTerm.count(),
+      prisma.jobTaxonomyLink.count(),
+      prisma.resumeTaxonomyLink.count(),
+      prisma.jobMatch.count(),
       prisma.job.findMany({
         select: { id: true, jobTitle: true, source: true, createdAt: true, company: { select: { companyName: true } } },
         orderBy: { createdAt: 'desc' },
@@ -58,6 +66,10 @@ export async function GET(req: NextRequest) {
         totalCompanies,
         totalApplications,
         totalResumes,
+        totalTaxonomyTerms,
+        totalJobTaxonomyLinks,
+        totalResumeTaxonomyLinks,
+        totalMatchesComputed,
       },
       recentJobs,
       sourceCounts: sourceCounts.map(s => ({

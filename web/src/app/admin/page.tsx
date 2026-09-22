@@ -11,6 +11,13 @@ import {
   TrendingUp,
   Activity,
   Clock,
+  Sliders,
+  Sparkles,
+  Network,
+  RefreshCw,
+  CheckCircle2,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 
 interface AdminStats {
@@ -21,6 +28,10 @@ interface AdminStats {
   totalCompanies: number;
   totalApplications: number;
   totalResumes: number;
+  totalTaxonomyTerms?: number;
+  totalJobTaxonomyLinks?: number;
+  totalResumeTaxonomyLinks?: number;
+  totalMatchesComputed?: number;
 }
 
 interface RecentJob {
@@ -42,6 +53,10 @@ export default function AdminDashboard() {
   const [sourceCounts, setSourceCounts] = useState<SourceCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [ingesting, setIngesting] = useState(false);
+  const [ingestStatus, setIngestStatus] = useState<string | null>(null);
+  const [rerankEnabled, setRerankEnabled] = useState(true);
+  const [topK, setTopK] = useState(10);
 
   useEffect(() => {
     async function load() {
@@ -93,14 +108,37 @@ export default function AdminDashboard() {
     );
   }
 
+  const handleTriggerIngestion = async () => {
+    setIngesting(true);
+    setIngestStatus("Triggering multi-source job ingestion pipeline...");
+    try {
+      const res = await fetch("/api/admin/ingestion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: "all" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIngestStatus(data.message || `Ingestion scheduled successfully (${data.sourcesTriggered?.length || 0} sources).`);
+      } else {
+        setIngestStatus(data.error || "Failed to trigger ingestion.");
+      }
+    } catch {
+      setIngestStatus("Network error triggering ingestion.");
+    } finally {
+      setIngesting(false);
+    }
+  };
+
   const statCards = [
     { label: "Total Users", value: stats?.totalUsers || 0, icon: Users, color: "from-indigo-500 to-violet-500", iconBg: "bg-indigo-500/15" },
     { label: "Active Jobs", value: stats?.activeJobs || 0, icon: Briefcase, color: "from-emerald-500 to-teal-500", iconBg: "bg-emerald-500/15" },
-    { label: "Expired Jobs", value: stats?.expiredJobs || 0, icon: Clock, color: "from-amber-500 to-orange-500", iconBg: "bg-amber-500/15" },
     { label: "Companies", value: stats?.totalCompanies || 0, icon: Building2, color: "from-violet-500 to-purple-500", iconBg: "bg-violet-500/15" },
     { label: "Applications", value: stats?.totalApplications || 0, icon: KanbanSquare, color: "from-pink-500 to-rose-500", iconBg: "bg-pink-500/15" },
     { label: "Resumes", value: stats?.totalResumes || 0, icon: FileText, color: "from-teal-500 to-cyan-500", iconBg: "bg-teal-500/15" },
-    { label: "Total Jobs", value: stats?.totalJobs || 0, icon: Database, color: "from-slate-500 to-zinc-500", iconBg: "bg-slate-500/15" },
+    { label: "ESCO Taxonomy Terms", value: stats?.totalTaxonomyTerms || 0, icon: Network, color: "from-amber-500 to-yellow-500", iconBg: "bg-amber-500/15" },
+    { label: "Job Taxonomy Links", value: stats?.totalJobTaxonomyLinks || 0, icon: Sparkles, color: "from-cyan-500 to-blue-500", iconBg: "bg-cyan-500/15" },
+    { label: "Matches Evaluated", value: stats?.totalMatchesComputed || 0, icon: Zap, color: "from-purple-500 to-indigo-500", iconBg: "bg-purple-500/15" },
   ];
 
   const sourceColors: Record<string, string> = {
@@ -114,12 +152,30 @@ export default function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 animate-fade-in">
-      <div>
-        <h2 className="text-2xl font-bold text-white">Platform Overview</h2>
-        <p className="text-sm text-[var(--foreground-secondary)]">
-          Real-time metrics for the JobIntel platform
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Platform Overview & Research Controls</h2>
+          <p className="text-sm text-[var(--foreground-secondary)]">
+            Two-stage research matching architecture, ESCO taxonomy stats, and real-time metrics
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={handleTriggerIngestion}
+            disabled={ingesting}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${ingesting ? "animate-spin" : ""}`} />
+            {ingesting ? "Ingesting..." : "Trigger Ingestion"}
+          </button>
+        </div>
       </div>
+
+      {ingestStatus && (
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-sm text-indigo-200 animate-fade-in">
+          {ingestStatus}
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -136,6 +192,89 @@ export default function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Research Controls Panel */}
+      <div className="glass-card-static p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.06] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-indigo-500/20 p-2.5 text-indigo-400">
+              <Sliders className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Research Architecture Controls</h3>
+              <p className="text-xs text-[var(--foreground-muted)]">
+                Stage A (ESCO Taxonomy + 8-Factor Hybrid) & Stage B (Selective LLM Reranker with Evidence Grounding)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+              <ShieldCheck className="h-3.5 w-3.5" /> Deterministic Fallback Active
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Stage B: LLM Reranking</span>
+              <button
+                type="button"
+                onClick={() => setRerankEnabled(!rerankEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  rerankEnabled ? "bg-indigo-600" : "bg-white/10"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    rerankEnabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-[var(--foreground-muted)]">
+              When enabled, top-{topK} candidates undergo structured JSON evaluation with strict evidence validation. If disabled, system falls back to Stage A retrieval score.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Top-K Reranking Depth</span>
+              <div className="flex gap-1.5">
+                {[5, 10, 20].map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setTopK(k)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                      topK === k
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
+                        : "bg-white/5 text-[var(--foreground-muted)] hover:text-white"
+                    }`}
+                  >
+                    K={k}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-[var(--foreground-muted)]">
+              Limits LLM evaluation to the highest-scoring Stage A candidates, minimizing token usage and latency.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <span className="text-sm font-semibold text-white">Mathematical Scoring Pipeline</span>
+            <div className="mt-2 space-y-1.5 font-mono text-[11px] text-indigo-300">
+              <div className="rounded bg-black/30 px-2 py-1">
+                Stage A: 0.90 × Base + 0.10 × ESCO
+              </div>
+              <div className="rounded bg-black/30 px-2 py-1">
+                Stage B: 0.80 × StageA + 0.20 × Rerank
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

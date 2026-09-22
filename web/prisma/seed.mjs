@@ -1,13 +1,19 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/jobintel?schema=public'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgrespassword@localhost:5433/jobintel?schema=public'
 const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('🌱 Starting Research-Enhanced Database Seeding...')
 
   // 1. Seed Admin User
   const adminSalt = await bcrypt.genSalt(10)
@@ -55,98 +61,108 @@ async function main() {
       branch: 'Computer Science & Engineering',
       graduationYear: 2025,
       cgpa: 8.7,
-      targetRoles: ['frontend', 'backend', 'fullstack'],
+      targetRoles: ['backend', 'frontend', 'fullstack'],
       preferredLocations: ['Bangalore', 'Hyderabad', 'Remote'],
       preferredWorkMode: 'remote',
       profile: {
         create: {
-          headline: 'CS Senior | Full Stack Developer | Open Source Enthusiast',
-          bio: 'Final year CS student passionate about building distributed web applications with React, TypeScript, and Node.js.',
+          headline: 'Full Stack & Backend Developer | Open Source Contributor',
+          bio: 'Final year CS student passionate about building distributed web applications with React, TypeScript, Python, and PostgreSQL.',
           githubUrl: 'https://github.com/demo-fresher',
           linkedinUrl: 'https://linkedin.com/in/demo-fresher',
-          skillsJson: ['react', 'typescript', 'javascript', 'python', 'postgresql', 'docker', 'git'],
-          achievementsJson: ['Hackathon Finalist 2024', 'Open Source Contributor']
+          skillsJson: [
+            { name: 'react', level: 'advanced', category: 'Frameworks' },
+            { name: 'typescript', level: 'advanced', category: 'Languages' },
+            { name: 'python', level: 'intermediate', category: 'Languages' },
+            { name: 'postgresql', level: 'intermediate', category: 'Databases' },
+            { name: 'docker', level: 'intermediate', category: 'Tools' },
+            { name: 'git', level: 'advanced', category: 'Tools' }
+          ],
+          achievementsJson: [{ title: 'Hackathon Finalist 2024', description: 'Built an AI vector search tool', date: '2024-11-15' }]
         }
       }
     }
   })
   console.log('✅ Demo user ready:', user.email)
 
-  // 3. Seed Companies
-  const companiesData = [
-    {
-      companyName: 'Stripe',
-      domain: 'stripe.com',
-      industry: 'Fintech',
-      companySize: 'large',
-      headquartersLocation: 'San Francisco, CA',
-      sourceType: 'greenhouse',
-      cultureTagsJson: ['engineering-first', 'documentation-driven', 'remote-friendly'],
-      interviewStyleJson: { rounds: 4, types: ['coding', 'bug-hunt', 'system-design'], difficulty: 'hard' },
-      fresherFriendly: true,
-      publicHiringEmail: 'hiring@stripe.com'
-    },
-    {
-      companyName: 'Cloudflare',
-      domain: 'cloudflare.com',
-      industry: 'Cybersecurity & Infrastructure',
-      companySize: 'large',
-      headquartersLocation: 'San Francisco, CA',
-      sourceType: 'greenhouse',
-      cultureTagsJson: ['systems-programming', 'open-source-friendly', 'highly-technical'],
-      interviewStyleJson: { rounds: 3, types: ['coding', 'networking', 'behavioral'], difficulty: 'medium' },
-      fresherFriendly: true,
-      publicHiringEmail: 'jobs@cloudflare.com'
-    },
-    {
-      companyName: 'Vercel',
-      domain: 'vercel.com',
-      industry: 'Cloud Infrastructure',
-      companySize: 'mid',
-      headquartersLocation: 'San Francisco, CA',
-      sourceType: 'greenhouse',
-      cultureTagsJson: ['remote-first', 'design-focused', 'fast-paced'],
-      interviewStyleJson: { rounds: 4, types: ['coding-ui', 'take-home', 'behavioral'], difficulty: 'medium' },
-      fresherFriendly: true,
-      publicHiringEmail: 'careers@vercel.com'
-    },
-    {
-      companyName: 'Razorpay',
-      domain: 'razorpay.com',
-      industry: 'Fintech',
-      companySize: 'large',
-      headquartersLocation: 'Bangalore, India',
-      sourceType: 'manual',
-      cultureTagsJson: ['fast-growing', 'high-ownership', 'collaborative'],
-      interviewStyleJson: { rounds: 4, types: ['dsa', 'machine-coding', 'system-design'], difficulty: 'hard' },
-      fresherFriendly: true,
-      publicHiringEmail: 'freshers@razorpay.com'
-    },
-    {
-      companyName: 'Postman',
-      domain: 'postman.com',
-      industry: 'DevTools',
-      companySize: 'large',
-      headquartersLocation: 'Bangalore, India',
-      sourceType: 'manual',
-      cultureTagsJson: ['api-first', 'product-focused', 'flexible'],
-      interviewStyleJson: { rounds: 3, types: ['dsa', 'machine-coding', 'managerial'], difficulty: 'medium' },
-      fresherFriendly: true,
-      publicHiringEmail: 'careers@postman.com'
+  // 3. Seed Taxonomy Terms (ESCO baseline)
+  const taxonomyPath = path.resolve(__dirname, '../../services/data/skill_taxonomy.json')
+  let taxonomyMap = new Map() // skill_name -> taxonomy_term_id
+  if (fs.existsSync(taxonomyPath)) {
+    const rawTaxonomy = JSON.parse(fs.readFileSync(taxonomyPath, 'utf-8'))
+    let taxCount = 0
+    for (const [key, data] of Object.entries(rawTaxonomy)) {
+      const externalId = data.external_id || `esco-skill-${taxCount + 1}`
+      const term = await prisma.taxonomyTerm.upsert({
+        where: {
+          taxonomyName_externalId: {
+            taxonomyName: 'esco',
+            externalId: externalId
+          }
+        },
+        update: {
+          preferredLabel: data.preferred_label || key,
+          description: data.description || '',
+          aliasesJson: data.aliases || [],
+          versionLabel: 'v1.1'
+        },
+        create: {
+          taxonomyName: 'esco',
+          externalId: externalId,
+          termType: data.term_type || 'skill',
+          preferredLabel: data.preferred_label || key,
+          description: data.description || '',
+          aliasesJson: data.aliases || [],
+          versionLabel: 'v1.1'
+        }
+      })
+      taxonomyMap.set(key.toLowerCase(), term.id)
+      for (const alias of (data.aliases || [])) {
+        taxonomyMap.set(alias.toLowerCase(), term.id)
+      }
+      taxCount++
     }
-  ]
-
-  const seededCompanies = []
-  for (const c of companiesData) {
-    let record = await prisma.company.findFirst({ where: { domain: c.domain } })
-    if (!record) {
-      record = await prisma.company.create({ data: c })
-    }
-    seededCompanies.push(record)
+    console.log(`✅ Seeded ${taxCount} ESCO canonical taxonomy terms into taxonomy_terms`)
   }
-  console.log(`✅ Seeded ${seededCompanies.length} companies`)
 
-  // 4. Seed Source Feeds
+  // 4. Seed Companies from company_seeds.json
+  const companiesPath = path.resolve(__dirname, '../../services/data/company_seeds.json')
+  let companyMap = new Map() // name -> company_id
+  if (fs.existsSync(companiesPath)) {
+    const companiesList = JSON.parse(fs.readFileSync(companiesPath, 'utf-8'))
+    for (const c of companiesList) {
+      const company = await prisma.company.upsert({
+        where: { domain: c.domain },
+        update: {
+          companyName: c.company_name,
+          industry: c.industry,
+          companySize: c.company_size,
+          headquartersLocation: c.headquarters_location,
+          cultureTagsJson: c.culture_tags || [],
+          interviewStyleJson: c.interview_style || {},
+          engineeringBlogsJson: c.engineering_blogs || [],
+          fresherFriendly: c.fresher_friendly ?? true,
+          sourceType: c.greenhouse_board ? 'greenhouse' : (c.lever_slug ? 'lever' : 'manual')
+        },
+        create: {
+          companyName: c.company_name,
+          domain: c.domain,
+          industry: c.industry,
+          companySize: c.company_size,
+          headquartersLocation: c.headquarters_location,
+          cultureTagsJson: c.culture_tags || [],
+          interviewStyleJson: c.interview_style || {},
+          engineeringBlogsJson: c.engineering_blogs || [],
+          fresherFriendly: c.fresher_friendly ?? true,
+          sourceType: c.greenhouse_board ? 'greenhouse' : (c.lever_slug ? 'lever' : 'manual')
+        }
+      })
+      companyMap.set(c.company_name.toLowerCase(), company.id)
+    }
+    console.log(`✅ Seeded ${companyMap.size} companies from company_seeds.json`)
+  }
+
+  // 5. Seed Source Feeds
   const feedsData = [
     { sourceName: 'Stripe Greenhouse', sourceType: 'greenhouse', sourceUrl: 'https://boards-api.greenhouse.io/v1/boards/stripe/jobs', active: true, trustLevel: 'high' },
     { sourceName: 'Cloudflare Greenhouse', sourceType: 'greenhouse', sourceUrl: 'https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs', active: true, trustLevel: 'high' },
@@ -165,15 +181,15 @@ async function main() {
   }
   console.log('✅ Seeded source feeds')
 
-  // 5. Seed Jobs
-  const stripeCompany = seededCompanies.find(c => c.companyName === 'Stripe')
-  const vercelCompany = seededCompanies.find(c => c.companyName === 'Vercel')
-  const cloudflareCompany = seededCompanies.find(c => c.companyName === 'Cloudflare')
-  const razorpayCompany = seededCompanies.find(c => c.companyName === 'Razorpay')
+  // 6. Seed Sample Jobs and Link to Taxonomy
+  const stripeId = companyMap.get('stripe')
+  const vercelId = companyMap.get('vercel')
+  const cloudflareId = companyMap.get('cloudflare')
+  const razorpayId = companyMap.get('razorpay')
 
   const sampleJobs = [
     {
-      companyId: stripeCompany?.id,
+      companyId: stripeId,
       jobTitle: 'Software Engineering Intern - Summer 2025',
       roleType: 'backend',
       location: 'Bangalore, India',
@@ -181,15 +197,15 @@ async function main() {
       experienceLevel: 'intern',
       jobType: 'internship',
       department: 'Payments Infrastructure',
-      description: 'Join Stripes payments engineering team as a software engineering intern. You will work on scalable distributed systems handling billions in transactions.',
-      skillsJson: ['python', 'java', 'postgresql', 'distributed systems'],
+      description: 'Join Stripes payments engineering team as a software engineering intern. You will work on scalable distributed systems handling billions in transactions with Python, Go, and PostgreSQL.',
+      skillsJson: ['python', 'golang', 'postgresql', 'distributed systems'],
       salaryRange: '₹80,000 - ₹1,20,000 / month',
       applyUrl: 'https://stripe.com/jobs',
       source: 'greenhouse',
       confidenceScore: 0.95
     },
     {
-      companyId: vercelCompany?.id,
+      companyId: vercelId,
       jobTitle: 'Junior Frontend Developer',
       roleType: 'frontend',
       location: 'Remote',
@@ -205,7 +221,7 @@ async function main() {
       confidenceScore: 0.90
     },
     {
-      companyId: cloudflareCompany?.id,
+      companyId: cloudflareId,
       jobTitle: 'Systems Software Engineer - New Grad',
       roleType: 'backend',
       location: 'San Francisco, CA',
@@ -214,14 +230,14 @@ async function main() {
       jobType: 'full-time',
       department: 'Core Edge Systems',
       description: 'Build high-performance edge network systems using Rust, Go, and C++. Perfect for fresh computer science graduates with systems interest.',
-      skillsJson: ['rust', 'golang', 'c++', 'linux', 'networking'],
+      skillsJson: ['rust', 'golang', 'c++', 'docker'],
       salaryRange: '$120,000 - $145,000',
       applyUrl: 'https://cloudflare.com/careers',
       source: 'greenhouse',
       confidenceScore: 0.92
     },
     {
-      companyId: razorpayCompany?.id,
+      companyId: razorpayId,
       jobTitle: 'Associate Software Development Engineer (SDE-1)',
       roleType: 'fullstack',
       location: 'Bangalore, India',
@@ -229,7 +245,7 @@ async function main() {
       experienceLevel: 'entry',
       jobType: 'full-time',
       department: 'Merchant Platform',
-      description: 'Join India top payment gateway team. Responsible for designing clean RESTful microservices, optimizing SQL queries, and collaborating with cross-functional teams.',
+      description: 'Join Indias top payment gateway team. Responsible for designing clean RESTful microservices, optimizing SQL queries, and building web apps.',
       skillsJson: ['react', 'node.js', 'postgresql', 'redis', 'docker'],
       salaryRange: '₹14,00,000 - ₹20,00,000',
       applyUrl: 'https://razorpay.com/jobs',
@@ -239,14 +255,15 @@ async function main() {
   ]
 
   for (const j of sampleJobs) {
-    const existing = await prisma.job.findFirst({ where: { jobTitle: j.jobTitle, companyId: j.companyId } })
-    if (!existing) {
-      const created = await prisma.job.create({ data: j })
+    if (!j.companyId) continue
+    let job = await prisma.job.findFirst({ where: { jobTitle: j.jobTitle, companyId: j.companyId } })
+    if (!job) {
+      job = await prisma.job.create({ data: j })
       // Seed job requirements
       for (const s of (j.skillsJson || [])) {
         await prisma.jobRequirement.create({
           data: {
-            jobId: created.id,
+            jobId: job.id,
             skillName: s,
             requirementType: 'required',
             importanceLevel: 4
@@ -254,49 +271,64 @@ async function main() {
         })
       }
     }
-  }
-  console.log('✅ Seeded sample jobs with requirements')
 
-  // 6. Seed Interview Questions
-  const interviewQuestions = [
-    {
-      companyId: stripeCompany?.id,
-      roleType: 'backend',
-      questionText: 'Design a distributed rate limiter in memory supporting token bucket algorithm for payment API endpoints.',
-      questionType: 'coding',
-      difficultyLevel: 'medium',
-      source: 'manual',
-      confidenceScore: 0.90
-    },
-    {
-      companyId: vercelCompany?.id,
-      roleType: 'frontend',
-      questionText: 'Build an accessible, keyboard-navigable combobox component from scratch in React with virtualized list rendering.',
-      questionType: 'coding',
-      difficultyLevel: 'medium',
-      source: 'manual',
-      confidenceScore: 0.88
-    },
-    {
-      companyId: razorpayCompany?.id,
-      roleType: 'fullstack',
-      questionText: 'Design a high-throughput webhook delivery system that guarantees at-least-once delivery with exponential backoff.',
-      questionType: 'system-design',
-      difficultyLevel: 'hard',
-      source: 'manual',
-      confidenceScore: 0.92
-    }
-  ]
-
-  for (const q of interviewQuestions) {
-    const existing = await prisma.interviewQuestion.findFirst({ where: { questionText: q.questionText } })
-    if (!existing) {
-      await prisma.interviewQuestion.create({ data: q })
+    // Link job skills to taxonomy_terms
+    for (const s of (j.skillsJson || [])) {
+      const termId = taxonomyMap.get(s.toLowerCase())
+      if (termId) {
+        await prisma.jobTaxonomyLink.upsert({
+          where: {
+            jobId_taxonomyTermId_linkType: {
+              jobId: job.id,
+              taxonomyTermId: termId,
+              linkType: 'required_skill'
+            }
+          },
+          update: {},
+          create: {
+            jobId: job.id,
+            taxonomyTermId: termId,
+            linkType: 'required_skill',
+            confidenceScore: 0.95,
+            sourceMethod: 'exact_skill_match',
+            evidenceText: `Required skill: ${s}`
+          }
+        })
+      }
     }
   }
-  console.log('✅ Seeded interview questions')
+  console.log('✅ Seeded jobs with requirements & job_taxonomy_links')
 
-  console.log('🎉 Database seeding script finished successfully!')
+  // 7. Seed Interview Questions from interview_seeds.json
+  const interviewPath = path.resolve(__dirname, '../../services/data/interview_seeds.json')
+  if (fs.existsSync(interviewPath)) {
+    const questionsList = JSON.parse(fs.readFileSync(interviewPath, 'utf-8'))
+    let qCount = 0
+    for (const q of questionsList) {
+      const cId = companyMap.get(q.company_name.toLowerCase())
+      if (!cId) continue
+      const existing = await prisma.interviewQuestion.findFirst({
+        where: { questionText: q.question_text }
+      })
+      if (!existing) {
+        await prisma.interviewQuestion.create({
+          data: {
+            companyId: cId,
+            roleType: q.role_type,
+            questionText: q.question_text,
+            questionType: q.question_type,
+            difficultyLevel: q.difficulty_level,
+            source: q.source || 'manual',
+            confidenceScore: 0.90
+          }
+        })
+        qCount++
+      }
+    }
+    console.log(`✅ Seeded ${qCount} interview questions from interview_seeds.json`)
+  }
+
+  console.log('🎉 Research-Enhanced Seeding completed successfully!')
 }
 
 main()

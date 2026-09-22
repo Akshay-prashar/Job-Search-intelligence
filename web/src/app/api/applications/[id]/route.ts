@@ -24,8 +24,16 @@ export async function PATCH(
     if (followUpDate !== undefined) data.followUpDate = followUpDate ? new Date(followUpDate) : null
     if (status === 'applied' && !body.appliedAt) data.appliedAt = new Date()
 
+    // Verify ownership
+    const existing = await prisma.application.findUnique({
+      where: { id }
+    })
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+
     const application = await prisma.application.update({
-      where: { id, userId: session.userId },
+      where: { id },
       data,
       include: {
         job: {
@@ -54,8 +62,15 @@ export async function DELETE(
 
   try {
     const { id } = await params
+    const existing = await prisma.application.findUnique({
+      where: { id }
+    })
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+
     await prisma.application.delete({
-      where: { id, userId: session.userId },
+      where: { id },
     })
     return NextResponse.json({ message: 'Application deleted' })
   } catch (error: any) {

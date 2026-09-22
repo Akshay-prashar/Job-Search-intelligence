@@ -119,7 +119,46 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Update user with the current resume ID and inferred target roles
+    // 5. Link extracted skills to canonical taxonomy terms
+    try {
+      const allExtractedTerms = [...(parsedData.skills || []), ...(parsedData.target_roles || [])]
+      for (const termName of allExtractedTerms) {
+        const clean = termName.toLowerCase().trim()
+        const matchedTerm = await prisma.taxonomyTerm.findFirst({
+          where: {
+            OR: [
+              { preferredLabel: { equals: clean, mode: 'insensitive' } },
+              { aliasesJson: { array_contains: clean } }
+            ]
+          }
+        })
+
+        if (matchedTerm) {
+          await prisma.resumeTaxonomyLink.upsert({
+            where: {
+              resumeId_taxonomyTermId_linkType: {
+                resumeId: resume.id,
+                taxonomyTermId: matchedTerm.id,
+                linkType: 'extracted_skill'
+              }
+            },
+            update: {},
+            create: {
+              resumeId: resume.id,
+              taxonomyTermId: matchedTerm.id,
+              linkType: 'extracted_skill',
+              confidenceScore: 0.95,
+              sourceMethod: 'resume_extraction',
+              evidenceText: `Extracted from resume: ${termName}`
+            }
+          })
+        }
+      }
+    } catch (taxErr) {
+      console.warn('Failed to link resume to taxonomy terms:', taxErr)
+    }
+
+    // 6. Update user with the current resume ID and inferred target roles
     const userUpdateData: any = {
       resumeId: resume.id,
     }

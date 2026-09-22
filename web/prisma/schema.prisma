@@ -76,6 +76,7 @@ model Resume {
 
   user             User     @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
   usersWithThisCurrent User[] @relation("UserCurrentResume")
+  taxonomyLinks    ResumeTaxonomyLink[]
 
   @@map("resumes")
 }
@@ -145,6 +146,7 @@ model Job {
   savedJobs              SavedJob[]
   matches                JobMatch[]
   duplicateGroups        DuplicateGroup[]
+  taxonomyLinks          JobTaxonomyLink[]
 
   @@map("jobs")
 }
@@ -214,6 +216,12 @@ model JobMatch {
   recencyScore          Decimal? @map("recency_score") @db.Decimal(5, 2)
   completenessScore     Decimal? @map("completeness_score") @db.Decimal(5, 2)
   roleRelevanceScore    Decimal? @map("role_relevance_score") @db.Decimal(5, 2)
+  taxonomyScore         Decimal? @map("taxonomy_score") @db.Decimal(5, 2)
+  rerankScore           Decimal? @map("rerank_score") @db.Decimal(5, 2)
+  finalScore            Decimal? @map("final_score") @db.Decimal(5, 2)
+  taxonomyEvidenceJson  Json?    @default("{}") @map("taxonomy_evidence_json")
+  rerankExplanationJson Json?    @default("{}") @map("rerank_explanation_json")
+  rerankModel           String?  @map("rerank_model") @db.VarChar(100)
   explanationJson       Json     @default("{}") @map("explanation_json")
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime @default(now()) @map("updated_at") @db.Timestamptz
@@ -368,4 +376,61 @@ model PrivacyLog {
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("privacy_logs")
+}
+
+// 19. Taxonomy Term Table
+model TaxonomyTerm {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  taxonomyName    String   @map("taxonomy_name") @db.VarChar(50)
+  externalId      String   @map("external_id") @db.VarChar(255)
+  termType        String   @map("term_type") @db.VarChar(30)
+  preferredLabel  String   @map("preferred_label") @db.VarChar(255)
+  description     String?
+  aliasesJson     Json     @default("[]") @map("aliases_json")
+  embeddingVector Unsupported("vector(384)")? @map("embedding_vector")
+  versionLabel    String?  @map("version_label") @db.VarChar(100)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  jobLinks        JobTaxonomyLink[]
+  resumeLinks     ResumeTaxonomyLink[]
+
+  @@unique([taxonomyName, externalId])
+  @@map("taxonomy_terms")
+}
+
+// 20. Job Taxonomy Link Table
+model JobTaxonomyLink {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  jobId           String   @map("job_id") @db.Uuid
+  taxonomyTermId  String   @map("taxonomy_term_id") @db.Uuid
+  linkType        String   @map("link_type") @db.VarChar(30)
+  confidenceScore Decimal  @default(0.50) @map("confidence_score") @db.Decimal(5, 4)
+  sourceMethod    String   @map("source_method") @db.VarChar(50)
+  evidenceText    String?  @map("evidence_text")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  job             Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  taxonomyTerm    TaxonomyTerm @relation(fields: [taxonomyTermId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, taxonomyTermId, linkType])
+  @@map("job_taxonomy_links")
+}
+
+// 21. Resume Taxonomy Link Table
+model ResumeTaxonomyLink {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  resumeId        String   @map("resume_id") @db.Uuid
+  taxonomyTermId  String   @map("taxonomy_term_id") @db.Uuid
+  linkType        String   @map("link_type") @db.VarChar(30)
+  confidenceScore Decimal  @default(0.50) @map("confidence_score") @db.Decimal(5, 4)
+  sourceMethod    String   @map("source_method") @db.VarChar(50)
+  evidenceText    String?  @map("evidence_text")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  resume          Resume       @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  taxonomyTerm    TaxonomyTerm @relation(fields: [taxonomyTermId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, taxonomyTermId, linkType])
+  @@map("resume_taxonomy_links")
 }

@@ -35,8 +35,16 @@ interface RecommendedJob {
   remoteType: string;
   postedAt?: string;
   matchScore: number;
+  baseScore?: number;
+  taxonomyScore?: number;
+  rerankScore?: number;
   matchedSkills: string[];
   missingSkills: string[];
+  taxonomyMatches?: string[];
+  fresherFit?: string;
+  sourceLabel?: string;
+  whyRankedHere?: string;
+  fallbackUsed?: boolean;
 }
 
 export default function DashboardPage() {
@@ -125,7 +133,44 @@ export default function DashboardPage() {
           }
         }
 
-        // Fetch real jobs from database
+        // Fetch research-enhanced recommendations
+        const recRes = await fetch("/api/jobs/recommendations");
+        if (recRes.ok) {
+          const recData = await recRes.json();
+          if (recData.jobs && recData.jobs.length > 0) {
+            setStats(s => ({
+              ...s,
+              totalJobs: recData.pagination?.total || recData.jobs.length,
+              matchedJobs: recData.jobs.length
+            }));
+
+            const mappedJobs: RecommendedJob[] = recData.jobs.map((job: any) => ({
+              id: job.id,
+              jobTitle: job.job_title,
+              company: job.company || { companyName: job.company_name || "Tech Organization" },
+              location: job.location,
+              remoteType: job.remote_type,
+              postedAt: job.posted_at,
+              matchScore: Math.round(job.match?.score || 75),
+              baseScore: job.match?.base_score,
+              taxonomyScore: job.match?.taxonomy_score,
+              rerankScore: job.match?.rerank_score,
+              matchedSkills: (job.match?.matched_skills || []).map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)),
+              missingSkills: (job.match?.missing_skills || []).map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)),
+              taxonomyMatches: job.match?.taxonomy_matches || [],
+              fresherFit: job.match?.fresher_fit,
+              sourceLabel: job.match?.source_label,
+              whyRankedHere: job.match?.why_ranked_here,
+              fallbackUsed: job.match?.fallback_used
+            }));
+
+            setJobsList(mappedJobs);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Fallback to /api/jobs
         const jobsRes = await fetch("/api/jobs");
         if (jobsRes.ok) {
           const jobsData = await jobsRes.json();
@@ -402,8 +447,8 @@ export default function DashboardPage() {
                         </span>
                       </div>
 
-                      {/* Skills */}
-                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {/* Skills & Research Badges */}
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                         {job.matchedSkills.map((skill) => (
                           <span
                             key={skill}
@@ -420,7 +465,24 @@ export default function DashboardPage() {
                             {skill}
                           </span>
                         ))}
+                        {job.taxonomyScore !== undefined && (
+                          <span className="rounded-full bg-indigo-500/10 px-2 py-0.5 text-[11px] font-medium text-indigo-300 border border-indigo-500/20">
+                            ESCO Taxonomy: {job.taxonomyScore}%
+                          </span>
+                        )}
+                        {job.sourceLabel && (
+                          <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-300 border border-cyan-500/20">
+                            {job.sourceLabel}
+                          </span>
+                        )}
                       </div>
+
+                      {/* Evidence Grounded Justification */}
+                      {job.whyRankedHere && (
+                        <p className="mt-2 text-xs text-[var(--foreground-secondary)] line-clamp-1 italic">
+                          💡 {job.whyRankedHere}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -437,6 +499,9 @@ export default function DashboardPage() {
                       className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${remote.class}`}
                     >
                       {remote.label}
+                    </span>
+                    <span className="text-[10px] text-[var(--foreground-muted)]">
+                      Stage B Final Score
                     </span>
                   </div>
                 </div>

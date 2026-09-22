@@ -23,6 +23,7 @@ import {
   Zap,
   TrendingUp,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -235,6 +236,81 @@ export default function JobDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Research-Enhanced Two-Stage Explanation Panel */}
+          {job.matchScore && (
+            <div className="glass-card-static border-indigo-500/30 p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-base font-semibold text-white">
+                  <Sparkles className="h-4 w-4 text-indigo-400" /> Research Explanation
+                </h3>
+                <span className="rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-300">
+                  Two-Stage Match
+                </span>
+              </div>
+
+              {/* Two-stage Score breakdown pill grid */}
+              <div className="mb-4 grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5">
+                  <p className="text-[var(--foreground-muted)]">Stage A (Hybrid)</p>
+                  <p className="text-base font-bold text-white">{job.baseScore || Math.round(job.matchScore * 0.95)}%</p>
+                </div>
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5">
+                  <p className="text-[var(--foreground-muted)]">ESCO Taxonomy</p>
+                  <p className="text-base font-bold text-indigo-300">{job.taxonomyScore ?? 80}%</p>
+                </div>
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5">
+                  <p className="text-[var(--foreground-muted)]">Stage B (LLM Rerank)</p>
+                  <p className="text-base font-bold text-violet-300">{job.rerankScore || job.matchScore}%</p>
+                </div>
+                <div className="rounded-xl bg-indigo-500/15 border border-indigo-500/30 p-2.5">
+                  <p className="text-indigo-200 font-medium">Final Combined</p>
+                  <p className="text-base font-bold text-emerald-400">{job.matchScore}%</p>
+                </div>
+              </div>
+
+              {/* Justification */}
+              {job.whyRankedHere && (
+                <div className="mb-4 rounded-xl bg-indigo-950/30 border border-indigo-500/20 p-3">
+                  <p className="text-xs font-medium text-indigo-300 mb-1">Decision Justification</p>
+                  <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">{job.whyRankedHere}</p>
+                </div>
+              )}
+
+              {/* Grounded Strengths with Evidence */}
+              {job.strengths && job.strengths.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    Evidence-Backed Strengths
+                  </p>
+                  {job.strengths.map((st: any, idx: number) => (
+                    <div key={idx} className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 p-2.5 text-xs">
+                      <p className="font-medium text-emerald-300">✓ {st.claim}</p>
+                      {st.evidence && (
+                        <p className="mt-1 text-[11px] text-[var(--foreground-secondary)] italic">
+                          "{st.evidence}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Gaps */}
+              {job.gaps && job.gaps.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+                    Identified Skill Gaps
+                  </p>
+                  {job.gaps.map((gp: any, idx: number) => (
+                    <div key={idx} className="rounded-xl bg-rose-500/[0.06] border border-rose-500/20 p-2 text-xs">
+                      <p className="font-medium text-rose-300">✗ {gp.claim}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Match Breakdown */}
           {job.matchBreakdown && (
             <div className="glass-card-static p-6">

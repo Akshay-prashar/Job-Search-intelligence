@@ -1,0 +1,632 @@
+[
+  {
+    "company_name": "Google",
+    "domain": "google.com",
+    "industry": "Big Tech",
+    "company_size": "enterprise",
+    "headquarters_location": "Mountain View, CA",
+    "culture_tags": ["engineering-driven", "innovative", "research-focused", "scale"],
+    "interview_style": {
+      "rounds": 5,
+      "types": ["coding", "system-design", "googleyness"],
+      "difficulty": "hard",
+      "notes": "Strong focus on data structures, algorithmic efficiency, and scalable architecture."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://research.google/blog", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Microsoft",
+    "domain": "microsoft.com",
+    "industry": "Big Tech",
+    "company_size": "enterprise",
+    "headquarters_location": "Redmond, WA",
+    "culture_tags": ["collaborative", "growth-mindset", "cloud-first", "inclusive"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "architecture", "behavioral"],
+      "difficulty": "medium",
+      "notes": "Emphasis on problem solving, testing, and team collaboration."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://devblogs.microsoft.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Amazon",
+    "domain": "amazon.com",
+    "industry": "Big Tech",
+    "company_size": "enterprise",
+    "headquarters_location": "Seattle, WA",
+    "culture_tags": ["customer-obsessed", "high-ownership", "fast-paced", "metrics-driven"],
+    "interview_style": {
+      "rounds": 5,
+      "types": ["coding", "system-design", "leadership-principles"],
+      "difficulty": "hard",
+      "notes": "Every round assesses specific Amazon Leadership Principles with STAR format examples."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://aws.amazon.com/blogs/architecture", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Meta",
+    "domain": "meta.com",
+    "industry": "Big Tech",
+    "company_size": "enterprise",
+    "headquarters_location": "Menlo Park, CA",
+    "culture_tags": ["move-fast", "open-source", "high-impact", "distributed-systems"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "system-design", "behavioral"],
+      "difficulty": "hard",
+      "notes": "Fast-paced coding rounds expecting optimal solutions within 45 minutes."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://engineering.fb.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Apple",
+    "domain": "apple.com",
+    "industry": "Big Tech",
+    "company_size": "enterprise",
+    "headquarters_location": "Cupertino, CA",
+    "culture_tags": ["craftsmanship", "privacy-first", "perfectionist", "hardware-software"],
+    "interview_style": {
+      "rounds": 5,
+      "types": ["coding", "low-level-design", "domain-knowledge"],
+      "difficulty": "hard",
+      "notes": "Deep dive into language internals, memory management, and system concepts."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://machinelearning.apple.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Cloudflare",
+    "domain": "cloudflare.com",
+    "industry": "Cloud Infrastructure",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["systems-networking", "open-source", "security-first", "engineering-led"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "networking-systems", "behavioral"],
+      "difficulty": "medium",
+      "notes": "Values practical knowledge of HTTP, DNS, TCP/IP, and concurrent programming."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://blog.cloudflare.com/rss", "rss": "https://blog.cloudflare.com/rss" }],
+    "greenhouse_board": "cloudflare",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Vercel",
+    "domain": "vercel.com",
+    "industry": "Cloud Infrastructure",
+    "company_size": "mid",
+    "headquarters_location": "New York, NY",
+    "culture_tags": ["remote-first", "design-driven", "open-source", "frontend-excellence"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding-ui", "fullstack-design", "culture-fit"],
+      "difficulty": "medium",
+      "notes": "Emphasis on Next.js, React performance, modern frontend tools, and user experience."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://vercel.com/blog", "rss": null }],
+    "greenhouse_board": "vercel",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Netlify",
+    "domain": "netlify.com",
+    "industry": "Cloud Infrastructure",
+    "company_size": "mid",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["jamstack", "remote-first", "developer-tools", "collaborative"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["practical-coding", "system-design", "team-fit"],
+      "difficulty": "medium",
+      "notes": "Hands-on coding exercise centered around APIs, edge workers, and modern CI/CD."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.netlify.com/blog", "rss": null }],
+    "greenhouse_board": "netlify",
+    "lever_slug": null
+  },
+  {
+    "company_name": "DigitalOcean",
+    "domain": "digitalocean.com",
+    "industry": "Cloud Infrastructure",
+    "company_size": "large",
+    "headquarters_location": "New York, NY",
+    "culture_tags": ["developer-simplicity", "remote-friendly", "community-focused"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["coding", "cloud-systems", "values"],
+      "difficulty": "medium",
+      "notes": "Testing fundamentals in Linux, containerization, and distributed storage."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.digitalocean.com/blog", "rss": null }],
+    "greenhouse_board": "digitalocean",
+    "lever_slug": null
+  },
+  {
+    "company_name": "MongoDB",
+    "domain": "mongodb.com",
+    "industry": "Cloud Infrastructure",
+    "company_size": "large",
+    "headquarters_location": "New York, NY",
+    "culture_tags": ["database-internals", "high-performance", "open-source-heritage"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["algorithms", "concurrency", "system-design"],
+      "difficulty": "hard",
+      "notes": "Focus on data structures, multithreading, and distributed consensus."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.mongodb.com/blog", "rss": null }],
+    "greenhouse_board": "mongodb",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Stripe",
+    "domain": "stripe.com",
+    "industry": "Fintech",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["engineering-driven", "documentation-first", "high-quality-code", "macro-thinkers"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["bug-hunt", "system-design", "practical-coding", "behavioral"],
+      "difficulty": "hard",
+      "notes": "Distinctive bug-hunt round debugging real open source repositories."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://stripe.com/blog/engineering", "rss": "https://engineering.stripe.com/feed" }],
+    "greenhouse_board": "stripe",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Razorpay",
+    "domain": "razorpay.com",
+    "industry": "Fintech",
+    "company_size": "large",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["fast-paced", "ownership", "developer-ecosystem", "fintech-scale"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["machine-coding", "dsa", "system-design", "culture"],
+      "difficulty": "hard",
+      "notes": "Requires clean, production-grade modular code written in 90 minutes."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://engineering.razorpay.com", "rss": null }],
+    "greenhouse_board": "razorpay",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Zerodha",
+    "domain": "zerodha.com",
+    "industry": "Fintech",
+    "company_size": "mid",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["bootstrapped", "frugal-engineering", "open-source", "small-teams"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["code-walkthrough", "systems-design", "discussion"],
+      "difficulty": "hard",
+      "notes": "Appreciates deep mastery of Python, Go, Postgres, and minimal external dependencies."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://zerodha.tech", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Cred",
+    "domain": "cred.club",
+    "industry": "Fintech",
+    "company_size": "mid",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["design-first", "high-trust", "velocity", "event-driven"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["machine-coding", "problem-solving", "system-design"],
+      "difficulty": "hard",
+      "notes": "Strict emphasis on clean design patterns, Kafka workflows, and resilient systems."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://medium.com/cred-engineering", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "PhonePe",
+    "domain": "phonepe.com",
+    "industry": "Fintech",
+    "company_size": "large",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["massive-scale", "upi-pioneers", "reliability", "data-intensive"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["algorithms", "machine-coding", "system-design"],
+      "difficulty": "hard",
+      "notes": "Testing high TPS design, ACID transactions, and database sharding principles."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://tech.phonepe.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Swiggy",
+    "domain": "swiggy.com",
+    "industry": "Startups (India)",
+    "company_size": "large",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["hyperlocal", "real-time-logistics", "ai-dispatch", "high-velocity"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "machine-coding", "system-design"],
+      "difficulty": "medium",
+      "notes": "Tests graph algorithms, caching strategies, and geo-spatial query optimization."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://bytes.swiggy.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Zomato",
+    "domain": "zomato.com",
+    "industry": "Startups (India)",
+    "company_size": "large",
+    "headquarters_location": "Gurgaon, India",
+    "culture_tags": ["execution-driven", "customer-centric", "speed", "product-first"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["coding", "system-design", "managerial"],
+      "difficulty": "medium",
+      "notes": "Emphasis on quick turnaround, pragmatic architecture, and frontend/backend integration."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://blog.zomato.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Flipkart",
+    "domain": "flipkart.com",
+    "industry": "Startups (India)",
+    "company_size": "enterprise",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["e-commerce-scale", "deep-tech", "distributed-caching", "data-analytics"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["machine-coding", "dsa", "system-design", "hiring-manager"],
+      "difficulty": "hard",
+      "notes": "Strong focus on object oriented modeling, extensibility, and clean code principles."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://tech.flipkart.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Meesho",
+    "domain": "meesho.io",
+    "industry": "Startups (India)",
+    "company_size": "large",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["user-growth", "experimentation", "microservices", "ownership"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "machine-coding", "system-design"],
+      "difficulty": "medium",
+      "notes": "Evaluates problem breakdown, code organization, and concurrency handling."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://meesho.io/tech", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Groww",
+    "domain": "groww.in",
+    "industry": "Startups (India)",
+    "company_size": "large",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["simplicity", "fintech-scale", "customer-trust", "fast-shipping"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "system-design", "values"],
+      "difficulty": "medium",
+      "notes": "Focus on high throughput transactional microservices and scalable mobile APIs."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://groww.in/blog/category/tech", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "GitHub",
+    "domain": "github.com",
+    "industry": "Dev Tools",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["remote-first", "git-native", "developer-empathy", "open-source"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "code-review", "architecture", "collaboration"],
+      "difficulty": "hard",
+      "notes": "Includes practical collaborative code review and testing real-world software edge cases."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://github.blog/engineering", "rss": null }],
+    "greenhouse_board": "github",
+    "lever_slug": null
+  },
+  {
+    "company_name": "GitLab",
+    "domain": "gitlab.com",
+    "industry": "Dev Tools",
+    "company_size": "large",
+    "headquarters_location": "Remote",
+    "culture_tags": ["all-remote", "radical-transparency", "handbook-first", "devsecops"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["technical-assessment", "system-design", "team-screen"],
+      "difficulty": "medium",
+      "notes": "Assessments mirror daily async workflow, documented solutions, and Ruby/Go proficiency."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://about.gitlab.com/blog/categories/engineering", "rss": null }],
+    "greenhouse_board": "gitlab",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Atlassian",
+    "domain": "atlassian.com",
+    "industry": "Dev Tools",
+    "company_size": "enterprise",
+    "headquarters_location": "Sydney, Australia",
+    "culture_tags": ["teamwork", "open-collaboration", "agile", "developer-productivity"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "systems-architecture", "values-interview"],
+      "difficulty": "hard",
+      "notes": "Values interview evaluates candidate fit against the 5 Atlassian core values."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.atlassian.com/blog/technology", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Figma",
+    "domain": "figma.com",
+    "industry": "Dev Tools",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["webgl", "c++-wasm", "multiplayer-collaboration", "design-engineering"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "graphics-systems", "collaborative-problem"],
+      "difficulty": "hard",
+      "notes": "Tests spatial indexing (quad-trees), browser rendering optimization, and CRDT principles."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.figma.com/blog/engineering", "rss": null }],
+    "greenhouse_board": "figma",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Linear",
+    "domain": "linear.app",
+    "industry": "Dev Tools",
+    "company_size": "startup",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["speed", "sync-engine", "sqlite-in-browser", "minimalist"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["take-home-or-pair", "architecture", "founder-chat"],
+      "difficulty": "hard",
+      "notes": "Emphasis on 60 FPS interactions, optimistic UI updates, and local-first architecture."
+    },
+    "fresher_friendly": false,
+    "engineering_blogs": [{ "url": "https://linear.app/blog", "rss": null }],
+    "greenhouse_board": "linear",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Notion",
+    "domain": "notion.so",
+    "industry": "Dev Tools",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["craftsmanship", "block-architecture", "hybrid-cloud", "thoughtful-design"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "data-modeling", "behavioral"],
+      "difficulty": "hard",
+      "notes": "Focus on hierarchical data trees, offline sync, and real-time collaboration algorithms."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.notion.so/blog/topic/engineering", "rss": null }],
+    "greenhouse_board": "notion",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Postman",
+    "domain": "postman.com",
+    "industry": "SaaS",
+    "company_size": "large",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["api-first", "developer-community", "global", "flexible"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["machine-coding", "api-design", "managerial"],
+      "difficulty": "medium",
+      "notes": "Strong focus on RESTful contract design, HTTP status conventions, and protocol debugging."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://blog.postman.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Hasura",
+    "domain": "hasura.io",
+    "industry": "SaaS",
+    "company_size": "mid",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["graphql", "haskell", "database-compilers", "open-source"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "compiler-systems", "culture"],
+      "difficulty": "hard",
+      "notes": "Tests understanding of SQL AST generation, query optimization, and schema stitching."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://hasura.io/blog", "rss": null }],
+    "greenhouse_board": "hasura",
+    "lever_slug": null
+  },
+  {
+    "company_name": "Freshworks",
+    "domain": "freshworks.com",
+    "industry": "SaaS",
+    "company_size": "enterprise",
+    "headquarters_location": "San Mateo, CA",
+    "culture_tags": ["customer-delight", "multi-tenant", "global-saas", "scale"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "machine-coding", "system-design"],
+      "difficulty": "medium",
+      "notes": "Tests multi-tenant database isolation, rate limiting, and webhook ingestion pipelines."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://freshworks.engineer", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Zoho",
+    "domain": "zoho.com",
+    "industry": "SaaS",
+    "company_size": "enterprise",
+    "headquarters_location": "Chennai, India",
+    "culture_tags": ["self-reliant", "own-datacenters", "long-term-thinking", "fresher-friendly"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["basic-programming", "advanced-programming", "design", "hr"],
+      "difficulty": "medium",
+      "notes": "Classic pure programming rounds with zero built-in library support (manual string manipulation)."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.zoho.com/blog", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "TCS",
+    "domain": "tcs.com",
+    "industry": "Consulting/Services",
+    "company_size": "enterprise",
+    "headquarters_location": "Mumbai, India",
+    "culture_tags": ["fresher-heavy", "structured-training", "global-enterprise", "large-scale"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["nqt-exam", "technical-round", "managerial-hr"],
+      "difficulty": "easy",
+      "notes": "Tests standard CS fundamentals: OOP, DBMS, SQL, and core Java/C/Python."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.tcs.com/insights", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Infosys",
+    "domain": "infosys.com",
+    "industry": "Consulting/Services",
+    "company_size": "enterprise",
+    "headquarters_location": "Bangalore, India",
+    "culture_tags": ["training-excellence", "mysore-campus", "enterprise-consulting"],
+    "interview_style": {
+      "rounds": 3,
+      "types": ["hackwithinfy-assessment", "technical-interview", "hr"],
+      "difficulty": "easy",
+      "notes": "Assesses foundational algorithms, software engineering principles, and academic projects."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://www.infosys.com/newsroom.html", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Red Hat",
+    "domain": "redhat.com",
+    "industry": "Open Source",
+    "company_size": "enterprise",
+    "headquarters_location": "Raleigh, NC",
+    "culture_tags": ["open-source-way", "linux-kernel", "kubernetes", "open-collaboration"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["linux-internals", "distributed-systems", "upstream-contributions"],
+      "difficulty": "hard",
+      "notes": "Heavy emphasis on open-source upstream contributions, operating systems, and networking."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://next.redhat.com", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Canonical",
+    "domain": "canonical.com",
+    "industry": "Open Source",
+    "company_size": "large",
+    "headquarters_location": "London, UK",
+    "culture_tags": ["ubuntu", "all-remote", "rigorous", "linux-packaging"],
+    "interview_style": {
+      "rounds": 5,
+      "types": ["written-essay", "logic-psychometric", "technical-panel", "executive"],
+      "difficulty": "hard",
+      "notes": "Requires high school math transcripts, written technical essays, and rigorous aptitude screens."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://ubuntu.com/blog", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  },
+  {
+    "company_name": "Mozilla",
+    "domain": "mozilla.org",
+    "industry": "Open Source",
+    "company_size": "mid",
+    "headquarters_location": "San Francisco, CA",
+    "culture_tags": ["open-web", "privacy-rights", "rust-pioneers", "browser-internals"],
+    "interview_style": {
+      "rounds": 4,
+      "types": ["coding", "browser-systems", "values-alignment"],
+      "difficulty": "hard",
+      "notes": "Tests systems programming (Rust/C++), DOM performance, and Web standards."
+    },
+    "fresher_friendly": true,
+    "engineering_blogs": [{ "url": "https://hacks.mozilla.org", "rss": null }],
+    "greenhouse_board": null,
+    "lever_slug": null
+  }
+]

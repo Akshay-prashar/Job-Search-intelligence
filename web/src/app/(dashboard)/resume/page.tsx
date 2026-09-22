@@ -15,12 +15,19 @@ export default function ResumePage() {
   const [dragActive, setDragActive] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [processingStep, setProcessingStep] = useState<string>("Uploading PDF...");
+
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/users/me");
-        const data = await res.json();
-        if (data.user?.currentResume) setResume(data.user.currentResume);
+        const res = await fetch("/api/resumes/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.resume) { setResume(data.resume); return; }
+        }
+        const userRes = await fetch("/api/users/me");
+        const userData = await userRes.json();
+        if (userData.user?.currentResume) setResume(userData.user.currentResume);
       } catch {} finally { setLoading(false); }
     }
     load();
@@ -31,28 +38,50 @@ export default function ResumePage() {
     if (file.size > 5 * 1024 * 1024) { setError("File must be under 5MB."); return; }
     if (file.type !== "application/pdf") { setError("Only PDF files are accepted."); return; }
 
-    setUploading(true); setError(""); setUploadProgress(10);
+    setUploading(true); setError(""); setUploadProgress(15);
+    setProcessingStep("1/5: Uploading PDF document...");
     const formData = new FormData();
     formData.append("file", file);
 
-    // Simulate progress
-    const interval = setInterval(() => setUploadProgress(p => Math.min(p + 15, 85)), 500);
+    const stepTimer = setTimeout(() => {
+      setUploadProgress(35);
+      setProcessingStep("2/5: Extracting text with PyMuPDF...");
+    }, 700);
+
+    const stepTimer2 = setTimeout(() => {
+      setUploadProgress(60);
+      setProcessingStep("3/5: Parsing sections & structured experience...");
+    }, 1500);
+
+    const stepTimer3 = setTimeout(() => {
+      setUploadProgress(80);
+      setProcessingStep("4/5: Linking extracted skills to ESCO Taxonomy...");
+    }, 2300);
 
     try {
       const res = await fetch("/api/resumes/upload", { method: "POST", body: formData });
-      clearInterval(interval);
+      clearTimeout(stepTimer);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Upload failed");
       }
-      setUploadProgress(100);
+      setUploadProgress(95);
+      setProcessingStep("5/5: Generating 384-d pgvector embedding...");
       const data = await res.json();
-      setResume(data.resume);
+      setTimeout(() => {
+        setUploadProgress(100);
+        setResume(data.resume);
+        setUploading(false);
+      }, 500);
     } catch (err: any) {
-      clearInterval(interval);
+      clearTimeout(stepTimer);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
       setError(err.message);
       setUploadProgress(0);
-    } finally {
       setUploading(false);
     }
   };
@@ -65,8 +94,13 @@ export default function ResumePage() {
 
   const handleDelete = async () => {
     if (!confirm("Delete your resume and all parsed data?")) return;
-    setResume(null);
-    // In production: call a delete API
+    try {
+      await fetch("/api/resumes/me", { method: "DELETE" });
+      setResume(null);
+      setConsent(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete resume");
+    }
   };
 
   if (loading) return <div className="mx-auto max-w-3xl space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="skeleton h-48 rounded-2xl" />)}</div>;

@@ -76,3 +76,17 @@ export async function getAuthUser(req: NextRequest): Promise<{ userId: string; e
     return null
   }
 }
+
+export async function getAuthAdmin(req: NextRequest) {
+  const token = req.cookies.get('token')?.value
+  if (!token) return null
+  const payload = await verifyJWT(token)
+  if (!payload) return null
+  if (payload.role === 'admin') return payload
+  const adminUser = await prisma.adminUser.findUnique({
+    where: { email: payload.email },
+  })
+  if (!adminUser) return null
+  return { ...payload, role: 'admin' }
+}
+
