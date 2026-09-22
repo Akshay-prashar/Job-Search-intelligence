@@ -39,3 +39,30 @@ CREATE INDEX idx_resumes_embedding ON resumes
 -- GIN index for JSONB queries
 CREATE INDEX idx_jobs_skills_json ON jobs USING gin (skills_json);
 CREATE INDEX idx_user_profiles_skills_json ON user_profiles USING gin (skills_json);
+
+-- ============================================================
+-- Taxonomy indexes
+-- ============================================================
+
+CREATE INDEX IF NOT EXISTS idx_taxonomy_terms_type
+    ON taxonomy_terms(term_type);
+
+CREATE INDEX IF NOT EXISTS idx_taxonomy_terms_label
+    ON taxonomy_terms(preferred_label);
+
+CREATE INDEX IF NOT EXISTS idx_taxonomy_terms_embedding
+    ON taxonomy_terms
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 50);
+
+CREATE INDEX IF NOT EXISTS idx_job_taxonomy_job
+    ON job_taxonomy_links(job_id);
+
+CREATE INDEX IF NOT EXISTS idx_job_taxonomy_term
+    ON job_taxonomy_links(taxonomy_term_id);
+
+CREATE INDEX IF NOT EXISTS idx_resume_taxonomy_resume
+    ON resume_taxonomy_links(resume_id);
+
+CREATE INDEX IF NOT EXISTS idx_resume_taxonomy_term
+    ON resume_taxonomy_links(taxonomy_term_id);

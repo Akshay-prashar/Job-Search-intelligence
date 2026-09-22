@@ -32,3 +32,23 @@ CREATE TRIGGER trg_source_feeds_updated BEFORE UPDATE ON source_feeds
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_admin_users_updated BEFORE UPDATE ON admin_users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ============================================================
+-- Taxonomy updated_at trigger
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION update_taxonomy_terms_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_taxonomy_terms_updated_at
+ON taxonomy_terms;
+
+CREATE TRIGGER trg_taxonomy_terms_updated_at
+BEFORE UPDATE ON taxonomy_terms
+FOR EACH ROW
+EXECUTE FUNCTION update_taxonomy_terms_updated_at();

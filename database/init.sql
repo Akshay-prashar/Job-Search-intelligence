@@ -395,3 +395,63 @@ CREATE TABLE privacy_logs (
     details     JSONB DEFAULT '{}',
     created_at  TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================================
+-- 19. taxonomy_terms
+-- ============================================================
+CREATE TABLE taxonomy_terms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    taxonomy_name VARCHAR(50) NOT NULL,
+    external_id VARCHAR(255) NOT NULL,
+    term_type VARCHAR(30) NOT NULL,
+    preferred_label VARCHAR(255) NOT NULL,
+    description TEXT,
+    aliases_json JSONB DEFAULT '[]',
+    embedding_vector VECTOR(384),
+    version_label VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(taxonomy_name, external_id)
+);
+
+CREATE INDEX idx_taxonomy_terms_type ON taxonomy_terms(term_type);
+CREATE INDEX idx_taxonomy_terms_label ON taxonomy_terms(preferred_label);
+CREATE INDEX idx_taxonomy_terms_embedding
+ON taxonomy_terms USING ivfflat (embedding_vector vector_cosine_ops)
+WITH (lists = 50);
+
+-- ============================================================
+-- 20. job_taxonomy_links
+-- ============================================================
+CREATE TABLE job_taxonomy_links (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    taxonomy_term_id UUID NOT NULL REFERENCES taxonomy_terms(id) ON DELETE CASCADE,
+    link_type VARCHAR(30) NOT NULL,
+    confidence_score DECIMAL(5,4) DEFAULT 0.50,
+    source_method VARCHAR(50) NOT NULL,
+    evidence_text TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(job_id, taxonomy_term_id, link_type)
+);
+
+CREATE INDEX idx_job_taxonomy_job ON job_taxonomy_links(job_id);
+CREATE INDEX idx_job_taxonomy_term ON job_taxonomy_links(taxonomy_term_id);
+
+-- ============================================================
+-- 21. resume_taxonomy_links
+-- ============================================================
+CREATE TABLE resume_taxonomy_links (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    resume_id UUID NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+    taxonomy_term_id UUID NOT NULL REFERENCES taxonomy_terms(id) ON DELETE CASCADE,
+    link_type VARCHAR(30) NOT NULL,
+    confidence_score DECIMAL(5,4) DEFAULT 0.50,
+    source_method VARCHAR(50) NOT NULL,
+    evidence_text TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(resume_id, taxonomy_term_id, link_type)
+);
+
+CREATE INDEX idx_resume_taxonomy_resume ON resume_taxonomy_links(resume_id);
+CREATE INDEX idx_resume_taxonomy_term ON resume_taxonomy_links(taxonomy_term_id);
