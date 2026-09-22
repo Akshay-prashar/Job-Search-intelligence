@@ -1,0 +1,70 @@
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: jobintel-web
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/jobintel?schema=public
+      - PYTHON_SERVICE_URL=http://api:8000
+      - BACKEND_URL=http://api:8000
+      - JWT_SECRET=supersecretjwttokendesignchangeinproduction
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+    container_name: jobintel-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@db:5432/jobintel
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - HOST=0.0.0.0
+      - PORT=8000
+      - INTERNAL_API_KEY=internal-secret-key
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - model_cache:/root/.cache/huggingface
+      - uploads_vol:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: jobintel-db
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_DB=jobintel
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - ./database/indexes.sql:/docker-entrypoint-initdb.d/03-indexes.sql
+      - ./database/triggers.sql:/docker-entrypoint-initdb.d/04-triggers.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jobintel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  model_cache:
+  uploads_vol:

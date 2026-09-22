@@ -1,0 +1,7 @@
+[project]
+name = "job-intel-services"
+version = "0.1.0"
+description = "FastAPI backend services for resume parsing, embedding, and hybrid matching"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []

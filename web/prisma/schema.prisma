@@ -1,0 +1,371 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. User Table
+model User {
+  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                String       @db.VarChar(255)
+  email               String       @unique @db.VarChar(255)
+  passwordHash        String?      @map("password_hash") @db.VarChar(255)
+  authProviderId      String?      @map("auth_provider_id") @db.VarChar(255)
+  college             String?      @db.VarChar(255)
+  branch              String?      @db.VarChar(100)
+  graduationYear      Int?         @map("graduation_year")
+  cgpa                Decimal?     @db.Decimal(4, 2)
+  targetRoles         Json         @default("[]") @map("target_roles")
+  preferredLocations  Json         @default("[]") @map("preferred_locations")
+  preferredWorkMode   String       @default("any") @map("preferred_work_mode") @db.VarChar(20)
+  resumeId            String?      @map("resume_id") @db.Uuid
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime     @default(now()) @map("updated_at") @db.Timestamptz
+
+  profile             UserProfile?
+  resumes             Resume[]     @relation("UserResumes")
+  currentResume       Resume?      @relation("UserCurrentResume", fields: [resumeId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  applications        Application[]
+  savedJobs           SavedJob[]
+  matches             JobMatch[]
+  notifications       Notification[]
+  privacyLogs         PrivacyLog[]
+
+  @@map("users")
+}
+
+// 2. User Profile Table
+model UserProfile {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  headline         String?  @db.VarChar(255)
+  bio              String?
+  githubUrl        String?  @map("github_url") @db.VarChar(512)
+  linkedinUrl      String?  @map("linkedin_url") @db.VarChar(512)
+  portfolioUrl     String?  @map("portfolio_url") @db.VarChar(512)
+  currentYear      String?  @map("current_year") @db.VarChar(20)
+  skillsJson       Json     @default("[]") @map("skills_json")
+  achievementsJson Json     @default("[]") @map("achievements_json")
+  preferencesJson  Json     @default("{}") @map("preferences_json")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// 3. Resume Table
+model Resume {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  fileName         String   @map("file_name") @db.VarChar(255)
+  fileUrl          String?  @map("file_url") @db.VarChar(1024)
+  mimeType         String   @default("application/pdf") @map("mime_type") @db.VarChar(50)
+  extractedText    String?  @map("extracted_text")
+  parsedSections   Json     @default("{}") @map("parsed_sections")
+  skillsJson       Json     @default("[]") @map("skills_json")
+  educationJson    Json     @default("[]") @map("education_json")
+  projectsJson     Json     @default("[]") @map("projects_json")
+  embeddingsVector Unsupported("vector(384)")? @map("embeddings_vector")
+  uploadStatus     String   @default("pending") @map("upload_status") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  user             User     @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
+  usersWithThisCurrent User[] @relation("UserCurrentResume")
+
+  @@map("resumes")
+}
+
+// 4. Company Table
+model Company {
+  id                   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  companyName          String   @map("company_name") @db.VarChar(255)
+  domain               String?  @unique @db.VarChar(255)
+  logoUrl              String?  @map("logo_url") @db.VarChar(1024)
+  industry             String?  @db.VarChar(100)
+  companySize          String?  @map("company_size") @db.VarChar(50)
+  headquartersLocation String?  @map("headquarters_location") @db.VarChar(255)
+  sourceType           String?  @map("source_type") @db.VarChar(50)
+  cultureTagsJson      Json     @default("[]") @map("culture_tags_json")
+  interviewStyleJson   Json     @default("{}") @map("interview_style_json")
+  engineeringBlogsJson Json     @default("[]") @map("engineering_blogs_json")
+  fresherFriendly      Boolean  @default(false) @map("fresher_friendly")
+  publicHiringEmail    String?  @map("public_hiring_email") @db.VarChar(255)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  jobs                 Job[]
+  insights             CompanyInsight[]
+  interviews           InterviewQuestion[]
+  hiringNotes          HiringNote[]
+
+  @@map("companies")
+}
+
+// 5. Job Table
+model Job {
+  id                     String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  companyId              String?  @map("company_id") @db.Uuid
+  externalJobId          String?  @map("external_job_id") @db.VarChar(255)
+  jobTitle               String   @map("job_title") @db.VarChar(500)
+  roleType               String?  @map("role_type") @db.VarChar(50)
+  location               String?  @db.VarChar(255)
+  remoteType             String   @default("unknown") @map("remote_type") @db.VarChar(20)
+  experienceLevel        String   @default("entry") @map("experience_level") @db.VarChar(30)
+  jobType                String?  @map("job_type") @db.VarChar(30)
+  department             String?  @db.VarChar(255)
+  description            String?
+  responsibilities       String?
+  minimumQualifications  String?  @map("minimum_qualifications")
+  preferredQualifications String?  @map("preferred_qualifications")
+  skillsJson             Json     @default("[]") @map("skills_json")
+  salaryRange            String?  @map("salary_range") @db.VarChar(100)
+  applyUrl               String?  @map("apply_url") @db.VarChar(1024)
+  source                 String   @db.VarChar(50)
+  sourceUrl              String?  @map("source_url") @db.VarChar(1024)
+  postedAt               DateTime? @map("posted_at") @db.Timestamptz
+  expiryDate             DateTime? @map("expiry_date") @db.Timestamptz
+  confidenceScore        Decimal  @default(0.50) @map("confidence_score") @db.Decimal(3, 2)
+  embeddingsVector       Unsupported("vector(384)")? @map("embeddings_vector")
+  contentHash            String?  @map("content_hash") @db.VarChar(64)
+  duplicateOfJobId       String?  @map("duplicate_of_job_id") @db.Uuid
+  jobStatus              String   @default("active") @map("job_status") @db.VarChar(20)
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  company                Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  canonicalJob           Job?     @relation("JobDuplicates", fields: [duplicateOfJobId], references: [id], onDelete: SetNull)
+  duplicates             Job[]    @relation("JobDuplicates")
+  requirements           JobRequirement[]
+  applications           Application[]
+  savedJobs              SavedJob[]
+  matches                JobMatch[]
+  duplicateGroups        DuplicateGroup[]
+
+  @@map("jobs")
+}
+
+// 6. Job Requirement Table
+model JobRequirement {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  jobId           String   @map("job_id") @db.Uuid
+  skillName       String   @map("skill_name") @db.VarChar(100)
+  requirementType String   @default("required") @map("requirement_type") @db.VarChar(20)
+  importanceLevel Int      @default(3) @map("importance_level")
+  isMandatory     Boolean  @default(false) @map("is_mandatory")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("job_requirements")
+}
+
+// 7. Application Table
+model Application {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  jobId          String    @map("job_id") @db.Uuid
+  status         String    @default("to_apply") @db.VarChar(30)
+  appliedAt      DateTime? @map("applied_at") @db.Timestamptz
+  followUpDate   DateTime? @map("follow_up_date") @db.Date
+  notes          String?
+  interviewStage String?   @map("interview_stage") @db.VarChar(100)
+  result         String?   @db.VarChar(50)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job            Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("applications")
+}
+
+// 8. Saved Job Table
+model SavedJob {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  jobId     String   @map("job_id") @db.Uuid
+  savedAt   DateTime @default(now()) @map("saved_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+// 9. Job Match Table
+model JobMatch {
+  id                    String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  jobId                 String   @map("job_id") @db.Uuid
+  matchScore            Decimal  @map("match_score") @db.Decimal(5, 2)
+  exactMatchScore       Decimal? @map("exact_match_score") @db.Decimal(5, 2)
+  semanticScore         Decimal? @map("semantic_score") @db.Decimal(5, 2)
+  fresherFitScore       Decimal? @map("fresher_fit_score") @db.Decimal(5, 2)
+  logisticsScore        Decimal? @map("logistics_score") @db.Decimal(5, 2)
+  sourceConfidenceScore Decimal? @map("source_confidence_score") @db.Decimal(5, 2)
+  recencyScore          Decimal? @map("recency_score") @db.Decimal(5, 2)
+  completenessScore     Decimal? @map("completeness_score") @db.Decimal(5, 2)
+  roleRelevanceScore    Decimal? @map("role_relevance_score") @db.Decimal(5, 2)
+  explanationJson       Json     @default("{}") @map("explanation_json")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job                   Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("job_matches")
+}
+
+// 10. Company Insight Table
+model CompanyInsight {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  companyId       String   @map("company_id") @db.Uuid
+  source          String   @db.VarChar(50)
+  insightType     String   @map("insight_type") @db.VarChar(50)
+  rawText         String?  @map("raw_text")
+  summarizedText  String?  @map("summarized_text")
+  tagsJson        Json     @default("[]") @map("tags_json")
+  confidenceScore Decimal  @default(0.50) @map("confidence_score") @db.Decimal(3, 2)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_insights")
+}
+
+// 11. Interview Question Table
+model InterviewQuestion {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  companyId       String?  @map("company_id") @db.Uuid
+  roleType        String?  @map("role_type") @db.VarChar(50)
+  questionText    String   @map("question_text")
+  questionType    String?  @map("question_type") @db.VarChar(30)
+  difficultyLevel String?  @map("difficulty_level") @db.VarChar(20)
+  source          String?  @db.VarChar(50)
+  sourceUrl       String?  @map("source_url") @db.VarChar(1024)
+  confidenceScore Decimal  @default(0.50) @map("confidence_score") @db.Decimal(3, 2)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("interview_questions")
+}
+
+// 12. Hiring Note Table
+model HiringNote {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  companyId       String   @map("company_id") @db.Uuid
+  noteType        String?  @map("note_type") @db.VarChar(50)
+  noteText        String   @map("note_text")
+  source          String?  @db.VarChar(50)
+  sourceUrl       String?  @map("source_url") @db.VarChar(1024)
+  confidenceScore Decimal  @default(0.50) @map("confidence_score") @db.Decimal(3, 2)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("hiring_notes")
+}
+
+// 13. Source Feed Table
+model SourceFeed {
+  id             String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sourceName     String          @map("source_name") @db.VarChar(100)
+  sourceType     String          @map("source_type") @db.VarChar(50)
+  sourceUrl      String          @map("source_url") @db.VarChar(1024)
+  active         Boolean         @default(true)
+  lastFetchedAt  DateTime?       @map("last_fetched_at") @db.Timestamptz
+  fetchFrequency String          @default("daily") @map("fetch_frequency") @db.VarChar(50)
+  rateLimitNotes String?         @map("rate_limit_notes")
+  trustLevel     String          @default("medium") @map("trust_level") @db.VarChar(20)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @default(now()) @map("updated_at") @db.Timestamptz
+
+  rawIngestions  RawIngestion[]
+
+  @@map("source_feeds")
+}
+
+// 14. Raw Ingestion Table
+model RawIngestion {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sourceFeedId     String    @map("source_feed_id") @db.Uuid
+  externalId       String?   @map("external_id") @db.VarChar(255)
+  rawPayload       Json?     @map("raw_payload")
+  rawText          String?   @map("raw_text")
+  contentHash      String?   @map("content_hash") @db.VarChar(64)
+  fetchedAt        DateTime  @default(now()) @map("fetched_at") @db.Timestamptz
+  processedAt      DateTime? @map("processed_at") @db.Timestamptz
+  processingStatus String    @default("pending") @map("processing_status") @db.VarChar(20)
+  errorMessage     String?   @map("error_message")
+
+  sourceFeed       SourceFeed @relation(fields: [sourceFeedId], references: [id], onDelete: Cascade)
+
+  @@map("raw_ingestions")
+}
+
+// 15. Duplicate Group Table
+model DuplicateGroup {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  canonicalJobId String   @map("canonical_job_id") @db.Uuid
+  duplicateCount Int      @default(0) @map("duplicate_count")
+  duplicateReason String?  @map("duplicate_reason") @db.VarChar(100)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  canonicalJob   Job      @relation(fields: [canonicalJobId], references: [id], onDelete: Cascade)
+
+  @@map("duplicate_groups")
+}
+
+// 16. Notification Table
+model Notification {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  notificationType String?  @map("notification_type") @db.VarChar(50)
+  title            String?  @db.VarChar(255)
+  message          String?
+  readStatus       Boolean  @default(false) @map("read_status")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// 17. Admin User Table
+model AdminUser {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("admin") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("admin_users")
+}
+
+// 18. Privacy Log Table
+model PrivacyLog {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  actionType String   @map("action_type") @db.VarChar(50)
+  details    Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("privacy_logs")
+}
