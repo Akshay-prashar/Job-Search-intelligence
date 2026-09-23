@@ -4,11 +4,35 @@ from datetime import datetime
 from app.services.skill_taxonomy import extract_skills_from_text
 from app.utils.text_cleaning import clean_html
 
+
 class JobNormalizer:
+
+    @staticmethod
+    def _parse_iso_datetime(value: Any) -> datetime:
+        if not value:
+            return datetime.utcnow()
+
+        try:
+            normalized = str(value).replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(normalized)
+            return parsed.replace(tzinfo=None) if parsed.tzinfo else parsed
+        except (TypeError, ValueError):
+            return datetime.utcnow()
+
+    @staticmethod
+    def _parse_timestamp_ms(value: Any) -> datetime:
+        if value is None:
+            return datetime.utcnow()
+
+        try:
+            return datetime.utcfromtimestamp(float(value) / 1000.0)
+        except (TypeError, ValueError, OverflowError):
+            return datetime.utcnow()
+
     def _detect_experience_level(self, title: str, description: str) -> str:
         t = title.lower()
         d = description.lower()
-        
+
         if "intern" in t or "internship" in t:
             return "intern"
         if "senior" in t or "lead" in t or "principal" in t or "staff" in t or "architect" in t:
@@ -17,7 +41,7 @@ class JobNormalizer:
             return "junior"
         if "fresher" in t or "entry" in t or "grad" in t or "0-2" in d or "0-1" in d:
             return "entry"
-            
+
         return "entry"  # Default to entry since our target audience is freshers
 
     def _detect_remote(self, location: str) -> str:
@@ -51,8 +75,12 @@ class JobNormalizer:
         skills = extract_skills_from_text(description)
         title = raw.get("title", "")
         location_dict = raw.get("location", {})
-        location_str = location_dict.get("name", "Unknown") if isinstance(location_dict, dict) else str(location_dict)
-        
+        location_str = (
+            location_dict.get("name", "Unknown")
+            if isinstance(location_dict, dict)
+            else str(location_dict)
+        )
+
         return {
             "external_job_id": str(raw.get("id")),
             "job_title": title,
@@ -61,7 +89,9 @@ class JobNormalizer:
             "remote_type": self._detect_remote(location_str + " " + title),
             "experience_level": self._detect_experience_level(title, description),
             "job_type": "full-time" if "intern" not in title.lower() else "internship",
-            "department": raw.get("departments", [{}])[0].get("name", "Engineering") if raw.get("departments") else "Engineering",
+            "department": raw.get("departments", [{}])[0].get("name", "Engineering")
+            if raw.get("departments")
+            else "Engineering",
             "description": description,
             "responsibilities": "",
             "minimum_qualifications": "",
@@ -71,9 +101,11 @@ class JobNormalizer:
             "apply_url": raw.get("absolute_url"),
             "source": "greenhouse",
             "source_url": raw.get("absolute_url"),
-            "posted_at": datetime.utcnow(), # fallback to current time
+            "posted_at": self._parse_iso_datetime(
+                raw.get("updated_at") or raw.get("created_at")
+            ),
             "confidence_score": 0.90,
-            "job_status": "active"
+            "job_status": "active",
         }
 
     def normalize_lever(self, raw: Dict[str, Any], company_name: str) -> Dict[str, Any]:
@@ -81,7 +113,7 @@ class JobNormalizer:
         skills = extract_skills_from_text(description)
         title = raw.get("text", "")
         location_str = raw.get("categories", {}).get("location", "Unknown")
-        
+
         return {
             "external_job_id": str(raw.get("id")),
             "job_title": title,
@@ -100,9 +132,9 @@ class JobNormalizer:
             "apply_url": raw.get("applyUrl"),
             "source": "lever",
             "source_url": raw.get("hostedUrl"),
-            "posted_at": datetime.utcnow(),
+            "posted_at": self._parse_timestamp_ms(raw.get("createdAt")),
             "confidence_score": 0.90,
-            "job_status": "active"
+            "job_status": "active",
         }
 
     def normalize_github(self, raw: Dict[str, Any], source_repo: str = "") -> Dict[str, Any]:
@@ -112,7 +144,7 @@ class JobNormalizer:
         company = raw.get("company_name", "Unknown")
         description = f"{title} at {company}. Location: {location_str}."
         skills = extract_skills_from_text(description + " " + title)
-        
+
         return {
             "external_job_id": raw.get("external_id") or f"github-{company}-{title}"[:64],
             "company_name": company,
@@ -134,5 +166,5 @@ class JobNormalizer:
             "source_url": apply_url or f"https://github.com/{source_repo}",
             "posted_at": datetime.utcnow(),
             "confidence_score": 0.70,
-            "job_status": "active"
-        }
+            "job_status": "active",
+	}
